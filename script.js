@@ -4,9 +4,16 @@ recognition.interimResults = true;
 recognition.continuous = true;
 
 let isListening = false;
-let finalText = ""; // เก็บข้อความสุดท้าย
-let lastSpokenText = ""; // เก็บข้อความสุดท้ายเพื่อกันซ้ำ
-let interimText = ""; // ข้อความชั่วคราว
+let lastSpokenText = ""; // ⭐ ป้องกันคำซ้ำ
+let interimText = ""; // ⭐ ข้อความชั่วคราว
+let userText = ""; // ⭐ เก็บข้อความที่ผู้ใช้พิมพ์เอง
+
+const outputTextDiv = document.getElementById("outputText");
+
+// ⭐ ตรวจจับการพิมพ์ของผู้ใช้ (บันทึกข้อความที่พิมพ์เอง)
+outputTextDiv.addEventListener("input", () => {
+    userText = outputTextDiv.innerText; // เก็บข้อความล่าสุดที่ผู้ใช้พิมพ์เอง
+});
 
 function startListening() {
     if (!isListening) {
@@ -21,10 +28,10 @@ function stopListening() {
 }
 
 function clearText() {
-    finalText = "";
+    outputTextDiv.innerHTML = "";
     lastSpokenText = "";
     interimText = "";
-    document.getElementById("outputText").innerHTML = "";
+    userText = "";
 }
 
 recognition.onresult = function(event) {
@@ -33,15 +40,16 @@ recognition.onresult = function(event) {
 
     if (lastResult.isFinal) {
         if (newText !== lastSpokenText) {
-            finalText += (finalText ? " / " : "") + newText;
-            lastSpokenText = newText; // เก็บค่าล่าสุดเพื่อตรวจสอบซ้ำ
+            userText += (userText ? " / " : "") + newText;
+            lastSpokenText = newText;
         }
         interimText = "";
     } else {
         interimText = newText;
     }
 
-    document.getElementById("outputText").innerHTML = finalText + 
+    // ⭐ รวมข้อความที่พิมพ์เอง + ข้อความจากเสียง
+    outputTextDiv.innerHTML = userText + 
         (interimText ? ` <span class="interim">${interimText}</span>` : "");
 
     restartRecognition();
@@ -51,7 +59,7 @@ function restartRecognition() {
     recognition.stop();
     setTimeout(() => {
         if (isListening) recognition.start();
-    }, 100); // ลดเวลาหยุด-เริ่มใหม่
+    }, 100);
 }
 
 recognition.onend = function() {
