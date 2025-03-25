@@ -4,15 +4,38 @@ recognition.interimResults = true;
 recognition.continuous = true;
 
 let isListening = false;
-let lastSpokenText = ""; // ⭐ ป้องกันคำซ้ำ
-let interimText = ""; // ⭐ ข้อความชั่วคราว
-let userText = ""; // ⭐ เก็บข้อความที่ผู้ใช้พิมพ์เอง
+let lastSpokenText = "";
+let interimText = "";
+let userText = "";
 
 const outputTextDiv = document.getElementById("outputText");
 
+// ⭐ บันทึกตำแหน่งเคอร์เซอร์
+function getCaretPosition(element) {
+    let sel = window.getSelection();
+    if (sel.rangeCount === 0) return 0;
+    let range = sel.getRangeAt(0);
+    let preRange = range.cloneRange();
+    preRange.selectNodeContents(element);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    return preRange.toString().length;
+}
+
+// ⭐ กำหนดตำแหน่งเคอร์เซอร์ใหม่
+function setCaretPosition(element, position) {
+    let range = document.createRange();
+    let sel = window.getSelection();
+    
+    range.setStart(element.childNodes[0] || element, position);
+    range.collapse(true);
+    
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
 // ⭐ ตรวจจับการพิมพ์ของผู้ใช้ (บันทึกข้อความที่พิมพ์เอง)
 outputTextDiv.addEventListener("input", () => {
-    userText = outputTextDiv.innerText; // เก็บข้อความล่าสุดที่ผู้ใช้พิมพ์เอง
+    userText = outputTextDiv.innerText;
 });
 
 function startListening() {
@@ -38,6 +61,8 @@ recognition.onresult = function(event) {
     let lastResult = event.results[event.results.length - 1];
     let newText = lastResult[0].transcript.trim();
 
+    let caretPosition = getCaretPosition(outputTextDiv); // ⭐ เก็บตำแหน่งเคอร์เซอร์ก่อนอัปเดตข้อความ
+
     if (lastResult.isFinal) {
         if (newText !== lastSpokenText) {
             userText += (userText ? " / " : "") + newText;
@@ -48,9 +73,9 @@ recognition.onresult = function(event) {
         interimText = newText;
     }
 
-    // ⭐ รวมข้อความที่พิมพ์เอง + ข้อความจากเสียง
-    outputTextDiv.innerHTML = userText + 
-        (interimText ? ` <span class="interim">${interimText}</span>` : "");
+    outputTextDiv.innerHTML = userText + (interimText ? ` <span class="interim">${interimText}</span>` : "");
+
+    setCaretPosition(outputTextDiv, caretPosition); // ⭐ คืนค่าตำแหน่งเคอร์เซอร์
 
     restartRecognition();
 };
