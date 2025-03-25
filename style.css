@@ -8,10 +8,17 @@ body {
     margin-top: 20px;
     font-size: 18px;
     white-space: pre-wrap;
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-height: 50px;
+    width: 80%;
+    margin: auto;
+    text-align: left;
+    background: #f9f9f9;
 }
 
 .interim {
-    color: gray; /* ข้อความชั่วคราวเป็นสีเทา */
+    color: gray;
 }
 
 button {
